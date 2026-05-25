@@ -10,6 +10,8 @@ The user is a near-expert at Node.js, Electron, and JavaScript, but please docum
 
 This is extremely important: as you implement more features, update this document's "what is implemented" / "what is not implemented" and include any relevant information about the implementation, such as new dependencies, changes to the file structure, or any other details that may be helpful for understanding the codebase and how to work with it.
 
+Instead of overthinking a problem because a prompt is too opaque or confusing, prompt the user to clarify the problem or provide more details, and then implement the solution based on the new information. Feel free to ask as many questions as are needed to best understand the problem. It's better to ask for clarification and get it right than waste tokens making assumptions or overthinking.
+
 ## User Interface
 
 The app itself should be a simple Electron app that has a few screens:
