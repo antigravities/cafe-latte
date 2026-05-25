@@ -115,43 +115,64 @@ function setStats(total, redeemed, pending) {
   elPending().textContent  = pending;
 }
 
-export function init(navigateTo) {
-  const btnRedeem   = document.getElementById('btn-redeem-now');
-  const btnRefresh  = document.getElementById('btn-dashboard-refresh');
-  const redeemSpinner = document.getElementById('btn-redeem-spinner');
-  const redeemError = document.getElementById('redemption-error');
+const AUTO_PASS_INTERVAL_MS = 15 * 60 * 1000;
 
-  btnRedeem.addEventListener('click', async () => {
-    // Lock both buttons while the pass runs
+export function init(navigateTo) {
+  const btnRedeem     = document.getElementById('btn-redeem-now');
+  const btnRefresh    = document.getElementById('btn-dashboard-refresh');
+  const redeemSpinner = document.getElementById('btn-redeem-spinner');
+  const redeemError   = document.getElementById('redemption-error');
+
+  // UI-side guard: prevents the interval from firing a second IPC call while one is in flight.
+  // The backend has its own isRunning guard as a belt-and-suspenders fallback.
+  let isPassRunning    = false;
+  let autoPassInterval = null;
+
+  async function triggerPass() {
+    if (isPassRunning) return;
+    isPassRunning = true;
+
+    // Start the 15-minute auto-pass on the first manual or automatic trigger
+    if (!autoPassInterval) {
+      autoPassInterval = setInterval(triggerPass, AUTO_PASS_INTERVAL_MS);
+    }
+
     btnRedeem.disabled  = true;
     btnRefresh.disabled = true;
     redeemSpinner.classList.remove('d-none');
     redeemError.classList.add('d-none');
 
-    const result = await window.api.runRedemptionPass();
+    try {
+      const result = await window.api.runRedemptionPass();
 
-    // Restore buttons
-    btnRedeem.disabled  = false;
-    btnRefresh.disabled = false;
-    redeemSpinner.classList.add('d-none');
+      // already_running means the backend guard caught a race — silently ignore
+      if (!result.success) {
+        if (result.reason !== 'already_running') {
+          redeemError.textContent = `Redemption pass failed: ${result.reason}`;
+          redeemError.classList.remove('d-none');
+        }
+        return;
+      }
 
-    if (!result.success) {
-      redeemError.textContent = `Redemption pass failed: ${result.reason}`;
-      redeemError.classList.remove('d-none');
-      return;
+      // Accumulate into session totals
+      session.checked   += result.checked    ?? 0;
+      session.activated += result.activated  ?? 0;
+      session.owned     += result.markedOwned ?? 0;
+      session.failed    += result.failed     ?? 0;
+
+      updateSessionCards();
+
+      // Refresh sheet stat cards so Redeemed / Pending numbers are up to date
+      loadStats(true);
+    } finally {
+      isPassRunning       = false;
+      btnRedeem.disabled  = false;
+      btnRefresh.disabled = false;
+      redeemSpinner.classList.add('d-none');
     }
+  }
 
-    // Accumulate into session totals
-    session.checked   += result.checked   ?? 0;
-    session.activated += result.activated ?? 0;
-    session.owned     += result.markedOwned ?? 0;
-    session.failed    += result.failed    ?? 0;
-
-    updateSessionCards();
-
-    // Refresh sheet stat cards so Redeemed / Pending numbers are up to date
-    loadStats(true);
-  });
+  btnRedeem.addEventListener('click', triggerPass);
 
   btnRefresh.addEventListener('click', () => loadStats(true));
 

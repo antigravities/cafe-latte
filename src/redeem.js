@@ -220,17 +220,25 @@ async function runRedemptionPass(store) {
  * @param {import('electron').IpcMain} ipcMain
  * @param {import('electron-store').default} store
  */
+// Prevents two redemption passes from running concurrently (e.g. manual click + auto-timer overlap).
+let isRunning = false;
+
 export function registerHandlers(ipcMain, store) {
   /**
    * Runs a full redemption pass over the selected spreadsheet.
    * Returns { success: true, checked, markedOwned } or { success: false, reason }.
+   * Returns { success: false, reason: 'already_running' } if a pass is already in progress.
    */
   ipcMain.handle('redemption:run', async () => {
+    if (isRunning) return { success: false, reason: 'already_running' };
+    isRunning = true;
     try {
       const result = await runRedemptionPass(store);
       return { success: true, ...result };
     } catch (err) {
       return { success: false, reason: err.message };
+    } finally {
+      isRunning = false;
     }
   });
 }
