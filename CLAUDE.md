@@ -75,7 +75,8 @@ electron-builder.yml — Builds to dist/ as Windows NSIS installer
 | `steam-user` | 5.3.0 | Steam CM connections, key activation, library queries |
 | `googleapis` | 172.0.0 | Google Sheets/Drive API |
 | `bootstrap` | 5.3.8 | UI — loaded directly from `node_modules/bootstrap/dist/` |
-| `electron-store` | 11.0.2 | Persistent config/state (installed, not yet wired up) |
+| `fuse.js` | 7.x | Fuzzy search for spreadsheet picker — imported as ESM from `node_modules/fuse.js/dist/fuse.mjs` |
+| `electron-store` | 11.0.2 | Persistent config/state |
 | `electron` | 42.2.0 | App runtime (devDep) |
 
 ### IPC surface
@@ -117,11 +118,14 @@ Three `<div>` page containers toggled with Bootstrap's `d-none`:
 - BrowserWindow creation with contextIsolation + no nodeIntegration (`src/main.js`)
 - Google Drive OAuth 2.0 loopback-redirect flow (`src/gdrive.js`): opens system browser, catches redirect on an ephemeral localhost server, exchanges code for tokens, persists to store
 - `getAuthenticatedClient(store)` helper exported from `gdrive.js` for use by future sheets/API modules
-- Spreadsheet selection backend
+- Spreadsheet selection backend (`src/sheets.js`): lists all Drive spreadsheets (paginated), persists selection to store
+- Full renderer UI for all three pages (`src/renderer/steam.js`, `src/renderer/gdrive.js`, `src/renderer/app.js`)
+  - Steam: saved-account banner, manual login form, SteamGuard challenge
+  - Google Drive: credential entry, OAuth flow, spreadsheet picker with Fuse.js fuzzy search, pre-selects previously chosen sheet on return visits
 
 ### What is NOT yet implemented
-- UI for all three pages (forms, page transitions, error display)
-- Spreadsheet reading
+- Dashboard UI (currently shows placeholder text)
+- Spreadsheet reading (rows, keys, activation status)
 - Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`)
 - Library ownership check (Storefront API / GetAppList)
 - Rate-limit detection, 62-minute cooldown, and last-redemption timestamp persistence

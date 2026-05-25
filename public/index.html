@@ -88,6 +88,26 @@
           <button id="btn-gdrive-disconnect" class="btn btn-link btn-sm text-secondary">Disconnect</button>
         </div>
       </div>
+
+      <!-- Sheet picker section: shown after connecting to Google Drive -->
+      <div id="sheet-select-section" class="d-none">
+        <p class="text-muted small mb-2">Choose a spreadsheet to use:</p>
+        <div class="input-group mb-2">
+          <input type="text" class="form-control" id="input-sheet-search"
+                 placeholder="Search spreadsheets…" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="sheet-list" class="list-group mb-3"
+             style="max-height: 280px; overflow-y: auto;"></div>
+        <div id="sheet-select-error" class="alert alert-danger d-none" role="alert"></div>
+        <button id="btn-sheet-confirm" class="btn btn-primary w-100 d-none">
+          <span id="sheet-confirm-spinner" class="spinner-border spinner-border-sm me-2 d-none"
+                role="status" aria-hidden="true"></span>
+          <span id="btn-sheet-confirm-label">Continue</span>
+        </button>
+        <div class="text-center mt-2">
+          <a href="#" id="link-sheet-back" class="text-secondary small">← Back</a>
+        </div>
+      </div>
     </div>
   </div>
 
