@@ -4,6 +4,7 @@ import ElectronStore from 'electron-store';
 import { registerHandlers as registerSteamHandlers, getAccessToken } from './steam.js';
 import { registerHandlers as registerGdriveHandlers } from './gdrive.js';
 import { registerHandlers as registerSheetsHandlers } from './sheets.js';
+import { registerHandlers as registerRedeemHandlers } from './redeem.js';
 import { findAppId } from './applist.js';
 
 const store = new ElectronStore();
@@ -14,6 +15,7 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname).split("/").sli
 registerSteamHandlers(ipcMain, store);
 registerGdriveHandlers(ipcMain, store);
 registerSheetsHandlers(ipcMain, store);
+registerRedeemHandlers(ipcMain, store);
 
 // TODO: remove after verifying app list lookup works
 ipcMain.handle('debug:applist', async (_e, name) => {

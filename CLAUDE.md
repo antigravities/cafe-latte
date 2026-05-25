@@ -123,12 +123,17 @@ Three `<div>` page containers toggled with Bootstrap's `d-none`:
   - Steam: saved-account banner, manual login form, SteamGuard challenge
   - Google Drive: credential entry, OAuth flow, spreadsheet picker with Fuse.js fuzzy search, pre-selects previously chosen sheet on return visits
 - Dashboard UI with redemption stats (total/pending counts) with force refresh
+- App catalog lookup (`src/applist.js`): downloads full Steam app list via `IStoreService/GetAppList/v1`, builds exact + normalized + Fuse.js fuzzy index, session-cached
+- Redemption pass skeleton (`src/redeem.js`): `redemption:run` IPC handler iterates every pending row, resolves game name → appID, checks `IPlayerService/GetOwnedGames/v1`, marks owned rows as "Already in library [appid, name]" with light-blue highlight immediately (no queuing)
+
+**IPC — Redemption (`src/redeem.js`)**
+
+| IPC channel | `window.api` method | Description |
+|---|---|---|
+| `redemption:run` | `runRedemptionPass()` | Runs ownership-check pass; returns `{ success, checked, markedOwned }` |
 
 ### What is NOT yet implemented
-- Spreadsheet reading (rows, keys, activation status)
-- Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`)
-- Library ownership check (Storefront API / GetAppList)
+- Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`) — stub exists in `src/redeem.js` (`// TODO: attempt key activation`)
 - Rate-limit detection, 62-minute cooldown, and last-redemption timestamp persistence
 - 15-minute polling loop
 - Desktop notifications for errors and rate-limit events
-- Spreadsheet row coloring (green/red) on redemption result

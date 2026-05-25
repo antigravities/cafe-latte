@@ -161,3 +161,12 @@ export function registerHandlers(ipcMain, store) {
 export function getAccessToken() {
   return client._getLoginSession()?.accessToken ?? null;
 }
+
+/**
+ * Returns the SteamID object for the currently logged-in account, or null if not logged in.
+ * Call .toString() on the result to get the 64-bit SteamID string required by Web API calls.
+ * @returns {import('steam-user').SteamID | null}
+ */
+export function getSteamId() {
+  return client.steamID ?? null;
+}

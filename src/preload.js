@@ -64,4 +64,10 @@ contextBridge.exposeInMainWorld('api', {
   // TODO: remove after verifying app list lookup - returns { name, appid } or { error }
   // window.api.debugAppList('Hades')
   debugAppList: (name) => ipcRenderer.invoke('debug:applist', name),
+
+  // Runs a full redemption pass over the selected spreadsheet.
+  // Checks each pending row for library ownership, marks owned games immediately.
+  // Returns { success: true, checked, markedOwned } or { success: false, reason }.
+  // window.api.runRedemptionPass()
+  runRedemptionPass: () => ipcRenderer.invoke('redemption:run'),
 });
