@@ -1,6 +1,6 @@
 {
   "name": "cafe-latte",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Steam key redemption automation with Google Sheets",
   "main": "src/main.js",
   "scripts": {

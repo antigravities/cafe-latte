@@ -50,13 +50,16 @@ function updateEta(pending, lastAttempt) {
   const el = document.getElementById('stat-eta');
   const notice = document.getElementById('stat-auto-notice');
 
-  if (!autoPassStarted || !pending || pending === 0 || pending === '—') {
-    el.textContent = '';
+  if (autoPassStarted) {
+    notice.classList.remove('d-none');
+  } else {
     notice.classList.add('d-none');
-    return;
   }
 
-  notice.classList.remove('d-none');
+  if (!autoPassStarted || !pending || pending === 0 || pending === '—') {
+    el.textContent = '';
+    return;
+  }
 
   const cooldownRemaining = lastAttempt
     ? Math.max(0, lastAttempt + COOLDOWN_MS - Date.now())
@@ -82,14 +85,10 @@ function updateEta(pending, lastAttempt) {
  * @param {{ checked: number, activated: number, owned: number, failed: number }} stats
  */
 function updateSessionCards(stats) {
-  const row = document.getElementById('session-stats-row');
   document.getElementById('stat-session-checked').textContent   = stats.checked;
   document.getElementById('stat-session-activated').textContent = stats.activated;
   document.getElementById('stat-session-owned').textContent     = stats.owned;
   document.getElementById('stat-session-failed').textContent    = stats.failed;
-  if (stats.checked > 0 || stats.activated > 0 || stats.owned > 0 || stats.failed > 0) {
-    row.classList.remove('d-none');
-  }
 }
 
 /** Fetches stats and updates the DOM. Pass force=true to bypass the cache. */
@@ -151,6 +150,7 @@ export function init(navigateTo) {
   async function triggerPass() {
     if (isPassRunning) return;
     isPassRunning = true;
+    document.getElementById('session-stats-row').classList.remove('d-none');
 
     // Start the 15-minute auto-pass on the first manual or automatic trigger
     if (!autoPassInterval) {
