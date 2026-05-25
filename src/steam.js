@@ -135,8 +135,11 @@ export function registerHandlers(ipcMain, store) {
 
     resetSteamAuth();
     pendingAccountName = saved.accountName;
-    client.logOn({ accountName: saved.accountName, refreshToken: saved.refreshToken });
+    // Cannot specify account_name when logging in with a refresh token
+    client.logOn({ refreshToken: saved.refreshToken });
     client.once('refreshToken', (token) => {
+      // Steam will emit a new (refreshed) refresh token on login
+      // Update the store with the new token and timestamp, but keep the same accountName
       store.set('steamAccount', { accountName: saved.accountName, refreshToken: token, savedAt: Date.now() });
     });
     return waitForLogin();

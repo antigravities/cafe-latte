@@ -8,18 +8,60 @@
 </head>
 <body>
 
+  <!-- Steam Login page -->
   <div id="page-login">
-    <div class="container mt-5">
-      <h2>Steam Login</h2>
+    <div class="container mt-5" style="max-width: 420px;">
+      <h2 class="mb-4">Steam Login</h2>
+
+      <!-- State A: saved account banner (hidden until a token is found) -->
+      <div id="saved-account-section" class="d-none">
+        <p class="mb-1">Welcome back,</p>
+        <p class="fw-semibold fs-5 mb-3" id="saved-account-name"></p>
+        <button id="btn-token-login" class="btn btn-primary w-100 mb-2">
+          <span id="token-login-spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+          Log in
+        </button>
+        <div class="text-center">
+          <a href="#" id="link-different-account" class="text-secondary small">Use a different account</a>
+        </div>
+      </div>
+
+      <!-- State B: manual login form (visible by default until we know there's a saved token) -->
+      <div id="login-form-section" class="d-none">
+        <div class="mb-3">
+          <label for="input-account" class="form-label">Account name</label>
+          <input type="text" class="form-control" id="input-account" autocomplete="username" spellcheck="false">
+        </div>
+        <div class="mb-3">
+          <label for="input-password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="input-password" autocomplete="current-password">
+        </div>
+
+        <!-- SteamGuard section — hidden until a SteamGuard challenge arrives -->
+        <div id="steamguard-section" class="mb-3 d-none">
+          <label for="input-steamguard" class="form-label" id="steamguard-label">Steam Guard code</label>
+          <input type="text" class="form-control" id="input-steamguard" maxlength="8" autocomplete="one-time-code" spellcheck="false">
+        </div>
+
+        <div id="login-error" class="alert alert-danger d-none" role="alert"></div>
+
+        <!-- Primary action button; label changes depending on flow state -->
+        <button id="btn-login" class="btn btn-primary w-100">
+          <span id="login-spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+          <span id="btn-login-label">Log in</span>
+        </button>
+      </div>
     </div>
   </div>
 
+  <!-- Google Drive connection page -->
   <div id="page-connect" class="d-none">
     <div class="container mt-5">
       <h2>Connect to Google Drive</h2>
     </div>
   </div>
 
+  <!-- Redemption dashboard page -->
   <div id="page-dashboard" class="d-none">
     <div class="container mt-5">
       <h2>Dashboard</h2>
