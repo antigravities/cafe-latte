@@ -140,6 +140,3 @@ Three `<div>` page containers toggled with Bootstrap's `d-none`:
 | Key | Type | Purpose |
 |---|---|---|
 | `lastRedemptionAttempt` | number (ms timestamp) | Guards against activating keys during the 62-minute rate-limit cooldown |
-
-### What is NOT yet implemented
-- 15-minute polling loop
