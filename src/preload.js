@@ -42,4 +42,17 @@ contextBridge.exposeInMainWorld('api', {
   // Clears stored Google OAuth tokens (disconnect).
   // window.api.gdriveLogout()
   gdriveLogout: () => ipcRenderer.invoke('gdrive:logout'),
+
+  // Spreadsheet selection
+
+  // Returns { success: true, sheets: [{ id, name }, ...] } sorted by name, or { success: false, reason }
+  // window.api.listSpreadsheets()
+  listSpreadsheets: () => ipcRenderer.invoke('sheets:list-spreadsheets'),
+
+  // Persists the selected spreadsheet. window.api.selectSpreadsheet({ id, name })
+  selectSpreadsheet: (sheet) => ipcRenderer.invoke('sheets:select-spreadsheet', sheet),
+
+  // Returns { id, name } of the previously selected spreadsheet, or null.
+  // window.api.getSelectedSpreadsheet()
+  getSelectedSpreadsheet: () => ipcRenderer.invoke('sheets:get-selected-spreadsheet'),
 });

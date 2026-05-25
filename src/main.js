@@ -3,6 +3,7 @@ import path from 'path';
 import ElectronStore from 'electron-store';
 import { registerHandlers as registerSteamHandlers } from './steam.js';
 import { registerHandlers as registerGdriveHandlers } from './gdrive.js';
+import { registerHandlers as registerSheetsHandlers } from './sheets.js';
 
 const store = new ElectronStore();
 
@@ -11,6 +12,7 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname).split("/").sli
 
 registerSteamHandlers(ipcMain, store);
 registerGdriveHandlers(ipcMain, store);
+registerSheetsHandlers(ipcMain, store);
 
 function createWindow() {
   const win = new BrowserWindow({
