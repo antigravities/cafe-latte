@@ -55,4 +55,8 @@ contextBridge.exposeInMainWorld('api', {
   // Returns { id, name } of the previously selected spreadsheet, or null.
   // window.api.getSelectedSpreadsheet()
   getSelectedSpreadsheet: () => ipcRenderer.invoke('sheets:get-selected-spreadsheet'),
+
+  // Returns { success: true, totalRows, pendingRows } or { success: false, reason }.
+  // window.api.getSheetStats()
+  getSheetStats: () => ipcRenderer.invoke('sheets:get-stats'),
 });
