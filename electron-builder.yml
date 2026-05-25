@@ -1,5 +1,5 @@
 appId: moe.alexandra.cafe-latte
-productName: Café Latte
+productName: Cafè Latte
 directories:
   output: dist
 files:
@@ -8,5 +8,5 @@ files:
   - node_modules/**
   - package.json
 win:
-  target:
-    - nsis
+toolsets:
+  winCodeSign: "1.1.0"
