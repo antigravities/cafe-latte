@@ -55,11 +55,14 @@ The spreadsheet will look like this:
 src/
 main.js          — Electron main process: BrowserWindow creation, wires store + modules
 steam.js         — Steam auth module: state, helpers, IPC handler registration
+gdrive.js        — Google Drive/Sheets OAuth module: loopback auth flow, token persistence
 preload.js       — contextBridge: exposes window.api to renderer
 renderer/
     app.js         — Renderer entry point (DOMContentLoaded stub, currently empty)
 public/
 index.html       — Single-page shell; three page divs toggled by JS
+docs/
+gdrive.md        — Step-by-step guide: getting Google Cloud credentials and authorizing the app
 electron-builder.yml — Builds to dist/ as Windows NSIS installer
 ```
 
@@ -72,8 +75,11 @@ electron-builder.yml — Builds to dist/ as Windows NSIS installer
 | `electron-store` | 11.0.2 | Persistent config/state (installed, not yet wired up) |
 | `electron` | 42.2.0 | App runtime (devDep) |
 
-### IPC surface (`src/steam.js` → `src/preload.js`)
-Handlers are registered via `registerHandlers(ipcMain, store)` in `src/steam.js`.
+### IPC surface
+
+Handlers are registered via `registerHandlers(ipcMain, store)` in the respective module.
+
+**Steam (`src/steam.js`)**
 
 | IPC channel | `window.api` method | Description |
 |---|---|---|
@@ -83,7 +89,18 @@ Handlers are registered via `registerHandlers(ipcMain, store)` in `src/steam.js`
 | `steam:login-with-token` | `steamLoginWithToken()` | Logs in using the stored refresh token |
 | `steam:clear-saved-account` | `steamClearSavedAccount()` | Clears the stored account and refresh token |
 
+**Google Drive (`src/gdrive.js`)**
+
+| IPC channel | `window.api` method | Description |
+|---|---|---|
+| `gdrive:set-credentials` | `gdriveSetCredentials({ clientId, clientSecret })` | Saves GCP OAuth client credentials to store (one-time setup) |
+| `gdrive:start-auth` | `gdriveStartAuth()` | Opens system browser for OAuth consent; blocks until complete (5 min timeout) |
+| `gdrive:get-saved-account` | `gdriveGetSavedAccount()` | Returns `{ connected: true }` if tokens exist, else null |
+| `gdrive:logout` | `gdriveLogout()` | Clears stored OAuth tokens |
+
 All handlers return `{ success: true }` or `{ success: false, reason, ... }`.
+
+`src/gdrive.js` also exports `getAuthenticatedClient(store)` — returns a pre-credentialed `OAuth2Client` for use by future modules (e.g. sheets.js) that need to make API calls.
 
 ### UI pages (`public/index.html`)
 Three `<div>` page containers toggled with Bootstrap's `d-none`:
@@ -95,10 +112,12 @@ Three `<div>` page containers toggled with Bootstrap's `d-none`:
 - Steam login + SteamGuard two-step auth (`src/steam.js` + `src/preload.js`)
 - Refresh token persistence and auto-login via `electron-store` (`src/steam.js`)
 - BrowserWindow creation with contextIsolation + no nodeIntegration (`src/main.js`)
+- Google Drive OAuth 2.0 loopback-redirect flow (`src/gdrive.js`): opens system browser, catches redirect on an ephemeral localhost server, exchanges code for tokens, persists to store
+- `getAuthenticatedClient(store)` helper exported from `gdrive.js` for use by future sheets/API modules
 
 ### What is NOT yet implemented
 - UI for all three pages (forms, page transitions, error display)
-- Google Drive OAuth and spreadsheet selection
+- Spreadsheet selection and reading
 - Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`)
 - Library ownership check (Storefront API / GetAppList)
 - Rate-limit detection, 62-minute cooldown, and last-redemption timestamp persistence

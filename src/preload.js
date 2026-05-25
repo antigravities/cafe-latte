@@ -24,4 +24,22 @@ contextBridge.exposeInMainWorld('api', {
   // Clears the stored refresh token (logout / switch account)
   // window.api.steamClearSavedAccount()
   steamClearSavedAccount: () => ipcRenderer.invoke('steam:clear-saved-account'),
+
+  // Google Drive / Sheets authentication
+
+  // Saves OAuth 2.0 client credentials (one-time setup).
+  // window.api.gdriveSetCredentials({ clientId, clientSecret })
+  gdriveSetCredentials: (creds) => ipcRenderer.invoke('gdrive:set-credentials', creds),
+
+  // Opens the system browser for Google OAuth consent and waits for completion (up to 5 min).
+  // window.api.gdriveStartAuth()
+  gdriveStartAuth: () => ipcRenderer.invoke('gdrive:start-auth'),
+
+  // Returns { connected: true } if valid tokens are stored, otherwise null.
+  // window.api.gdriveGetSavedAccount()
+  gdriveGetSavedAccount: () => ipcRenderer.invoke('gdrive:get-saved-account'),
+
+  // Clears stored Google OAuth tokens (disconnect).
+  // window.api.gdriveLogout()
+  gdriveLogout: () => ipcRenderer.invoke('gdrive:logout'),
 });
