@@ -57,6 +57,7 @@ contextBridge.exposeInMainWorld('api', {
   getSelectedSpreadsheet: () => ipcRenderer.invoke('sheets:get-selected-spreadsheet'),
 
   // Returns { success: true, totalRows, pendingRows } or { success: false, reason }.
-  // window.api.getSheetStats()
-  getSheetStats: () => ipcRenderer.invoke('sheets:get-stats'),
+  // Pass force=true to bypass the 15-minute cache and hit the Sheets API directly.
+  // window.api.getSheetStats(force?)
+  getSheetStats: (force = false) => ipcRenderer.invoke('sheets:get-stats', { force }),
 });

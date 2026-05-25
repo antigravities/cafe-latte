@@ -122,9 +122,9 @@ Three `<div>` page containers toggled with Bootstrap's `d-none`:
 - Full renderer UI for all three pages (`src/renderer/steam.js`, `src/renderer/gdrive.js`, `src/renderer/app.js`)
   - Steam: saved-account banner, manual login form, SteamGuard challenge
   - Google Drive: credential entry, OAuth flow, spreadsheet picker with Fuse.js fuzzy search, pre-selects previously chosen sheet on return visits
+- Dashboard UI with redemption stats (total/pending counts) with force refresh
 
 ### What is NOT yet implemented
-- Dashboard UI (currently shows placeholder text)
 - Spreadsheet reading (rows, keys, activation status)
 - Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`)
 - Library ownership check (Storefront API / GetAppList)

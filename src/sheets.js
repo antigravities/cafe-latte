@@ -113,12 +113,13 @@ export function registerHandlers(ipcMain, store) {
    * totalRows  — non-blank data rows (header excluded)
    * pendingRows — rows with a blank activation status (column C)
    */
-  ipcMain.handle('sheets:get-stats', async () => {
+  ipcMain.handle('sheets:get-stats', async (_event, { force = false } = {}) => {
     try {
       const spreadsheet = store.get('selectedSpreadsheet');
       if (!spreadsheet) throw new Error('NoSpreadsheetSelected');
 
-      const cacheValid = statsCache &&
+      const cacheValid = !force &&
+        statsCache &&
         statsCache.spreadsheetId === spreadsheet.id &&
         Date.now() - statsCache.fetchedAt < STATS_TTL_MS;
 

@@ -10,8 +10,8 @@ const elTotal      = () => document.getElementById('stat-total');
 const elRedeemed   = () => document.getElementById('stat-redeemed');
 const elPending    = () => document.getElementById('stat-pending');
 
-/** Fetches stats and updates the DOM. */
-async function loadStats() {
+/** Fetches stats and updates the DOM. Pass force=true to bypass the cache. */
+async function loadStats(force = false) {
   const spinner = elSpinner();
   const errorEl = elError();
 
@@ -27,7 +27,7 @@ async function loadStats() {
     elSheetName().textContent = '';
   }
 
-  const res = await window.api.getSheetStats();
+  const res = await window.api.getSheetStats(force);
   spinner.classList.add('d-none');
 
   if (!res.success) {
@@ -49,7 +49,7 @@ function setStats(total, redeemed, pending) {
 }
 
 export function init(navigateTo) {
-  document.getElementById('btn-dashboard-refresh').addEventListener('click', loadStats);
+  document.getElementById('btn-dashboard-refresh').addEventListener('click', () => loadStats(true));
 
   document.getElementById('btn-dashboard-back').addEventListener('click', () => {
     navigateTo('page-connect');
