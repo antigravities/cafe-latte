@@ -125,8 +125,9 @@ export function init(navigateTo) {
 
   // UI-side guard: prevents the interval from firing a second IPC call while one is in flight.
   // The backend has its own isRunning guard as a belt-and-suspenders fallback.
-  let isPassRunning    = false;
-  let autoPassInterval = null;
+  let isPassRunning      = false;
+  let autoPassInterval   = null;
+  let statsRefreshInterval = null;
 
   async function triggerPass() {
     if (isPassRunning) return;
@@ -180,6 +181,17 @@ export function init(navigateTo) {
     navigateTo('page-connect');
   });
 
-  // Expose a hook so app.js can trigger a load whenever the page becomes visible
-  return { loadStats };
+  function startRefresh() {
+    if (!statsRefreshInterval) {
+      statsRefreshInterval = setInterval(() => loadStats(false), 60_000);
+    }
+  }
+
+  function stopRefresh() {
+    clearInterval(statsRefreshInterval);
+    statsRefreshInterval = null;
+  }
+
+  // Expose hooks so app.js can trigger loads and manage the refresh interval
+  return { loadStats, startRefresh, stopRefresh };
 }

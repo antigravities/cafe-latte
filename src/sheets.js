@@ -70,6 +70,11 @@ async function getSheetStats(store) {
  * @param {import('electron').IpcMain} ipcMain
  * @param {import('electron-store').default} store
  */
+/** Drops the cached stats so the next getSheetStats call hits the API. */
+export function invalidateStatsCache() {
+  statsCache = null;
+}
+
 export function registerHandlers(ipcMain, store) {
   /**
    * Returns all Google Sheets spreadsheets in the user's Drive, sorted by name.

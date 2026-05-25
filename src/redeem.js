@@ -4,6 +4,7 @@ import SteamUser from 'steam-user';
 import { getAuthenticatedClient } from './gdrive.js';
 import { getAccessToken, getSteamId, activateKey } from './steam.js';
 import { findAppId } from './applist.js';
+import { invalidateStatsCache } from './sheets.js';
 
 const OWNED_GAMES_URL = 'https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/';
 
@@ -212,6 +213,7 @@ async function runRedemptionPass(store) {
     }
   }
 
+  invalidateStatsCache();
   return { checked, markedOwned, activated, failed };
 }
 

@@ -13,11 +13,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const dashboard = initDashboard(navigateTo);
 
-  // Wrap navigateTo so navigating to the dashboard always triggers a stats load
+  // Wrap navigateTo so navigating to the dashboard triggers a stats load and
+  // starts the 1-minute refresh interval; leaving stops it to avoid ghost calls.
   const _navigateTo = navigateTo;
   function navigateToWithHooks(pageId) {
     _navigateTo(pageId);
-    if (pageId === 'page-dashboard') dashboard.loadStats();
+    if (pageId === 'page-dashboard') {
+      dashboard.loadStats();
+      dashboard.startRefresh();
+    } else {
+      dashboard.stopRefresh();
+    }
   }
 
   await initSteam(navigateToWithHooks);
