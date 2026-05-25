@@ -7,6 +7,8 @@ files:
   - public/**
   - node_modules/**
   - package.json
+publish:
+  provider: github
 win:
 toolsets:
   winCodeSign: "1.1.0"
