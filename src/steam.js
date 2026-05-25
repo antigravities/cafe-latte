@@ -151,3 +151,13 @@ export function registerHandlers(ipcMain, store) {
     return { success: true };
   });
 }
+
+/**
+ * Returns the current short-lived Steam access token from the active login session.
+ * steam-user calls webLogOn() automatically after login, which populates this via
+ * steam-session's refreshAccessToken(). Available once the 'webSession' event has fired.
+ * @returns {string | null}
+ */
+export function getAccessToken() {
+  return client._getLoginSession()?.accessToken ?? null;
+}

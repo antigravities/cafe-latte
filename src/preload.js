@@ -60,4 +60,8 @@ contextBridge.exposeInMainWorld('api', {
   // Pass force=true to bypass the 15-minute cache and hit the Sheets API directly.
   // window.api.getSheetStats(force?)
   getSheetStats: (force = false) => ipcRenderer.invoke('sheets:get-stats', { force }),
+
+  // TODO: remove after verifying app list lookup - returns { name, appid } or { error }
+  // window.api.debugAppList('Hades')
+  debugAppList: (name) => ipcRenderer.invoke('debug:applist', name),
 });
