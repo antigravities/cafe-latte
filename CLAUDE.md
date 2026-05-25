@@ -8,7 +8,7 @@ We are building this project step-by-step, starting with the basic flow and then
 
 The user is a near-expert at Node.js, Electron, and JavaScript, but please document methods and explain any complex code or logic in detail in comments, so that it's easy for us and future agents to understand the code and the reasoning behind it when we review the changes.
 
-As you implement more features, update this document's "what is implemented" / "what is not implemented" and include any relevant information about the implementation, such as new dependencies, changes to the file structure, or any other details that may be helpful for understanding the codebase and how to work with it.
+This is extremely important: as you implement more features, update this document's "what is implemented" / "what is not implemented" and include any relevant information about the implementation, such as new dependencies, changes to the file structure, or any other details that may be helpful for understanding the codebase and how to work with it.
 
 ## User Interface
 
@@ -56,13 +56,16 @@ src/
 main.js          — Electron main process: BrowserWindow creation, wires store + modules
 steam.js         — Steam auth module: state, helpers, IPC handler registration
 gdrive.js        — Google Drive/Sheets OAuth module: loopback auth flow, token persistence
+sheets.js        — Google Sheets API logic: enumerating sheets
 preload.js       — contextBridge: exposes window.api to renderer
 renderer/
-    app.js         — Renderer entry point (DOMContentLoaded stub, currently empty)
+    app.js         — Renderer entry point
+    steam.js       — Steam UI logic and IPC calls
+    gdrive.js      — Google Drive UI logic and IPC calls
 public/
-index.html       — Single-page shell; three page divs toggled by JS
+    index.html       — Single-page shell; three page divs toggled by JS
 docs/
-gdrive.md        — Step-by-step guide: getting Google Cloud credentials and authorizing the app
+    gdrive.md        — Step-by-step guide: getting Google Cloud credentials and authorizing the app
 electron-builder.yml — Builds to dist/ as Windows NSIS installer
 ```
 
@@ -114,10 +117,11 @@ Three `<div>` page containers toggled with Bootstrap's `d-none`:
 - BrowserWindow creation with contextIsolation + no nodeIntegration (`src/main.js`)
 - Google Drive OAuth 2.0 loopback-redirect flow (`src/gdrive.js`): opens system browser, catches redirect on an ephemeral localhost server, exchanges code for tokens, persists to store
 - `getAuthenticatedClient(store)` helper exported from `gdrive.js` for use by future sheets/API modules
+- Spreadsheet selection backend
 
 ### What is NOT yet implemented
 - UI for all three pages (forms, page transitions, error display)
-- Spreadsheet selection and reading
+- Spreadsheet reading
 - Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`)
 - Library ownership check (Storefront API / GetAppList)
 - Rate-limit detection, 62-minute cooldown, and last-redemption timestamp persistence
