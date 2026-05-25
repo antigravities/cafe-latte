@@ -1,0 +1,12 @@
+appId: moe.alexandra.cafe-latte
+productName: Café Latte
+directories:
+  output: dist
+files:
+  - src/**
+  - public/**
+  - node_modules/**
+  - package.json
+win:
+  target:
+    - nsis
