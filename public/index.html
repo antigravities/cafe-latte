@@ -56,15 +56,46 @@
 
   <!-- Google Drive connection page -->
   <div id="page-connect" class="d-none">
-    <div class="container mt-5">
-      <h2>Connect to Google Drive</h2>
+    <div class="container mt-5" style="max-width: 480px;">
+      <h2 class="mb-4">Connect to Google Drive</h2>
+
+      <!-- Setup section: shown when no OAuth tokens are stored -->
+      <div id="gdrive-setup-section">
+        <p class="text-muted small mb-3">
+          Enter your Google Cloud OAuth 2.0 credentials.
+          <a href="#" id="link-gdrive-docs">How do I get these?</a>
+        </p>
+        <div class="mb-3">
+          <label for="input-client-id" class="form-label">Client ID</label>
+          <input type="text" class="form-control" id="input-client-id" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="mb-3">
+          <label for="input-client-secret" class="form-label">Client Secret</label>
+          <input type="password" class="form-control" id="input-client-secret" autocomplete="off">
+        </div>
+        <div id="gdrive-error" class="alert alert-danger d-none" role="alert"></div>
+        <button id="btn-gdrive-connect" class="btn btn-primary w-100">
+          <span id="gdrive-spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+          <span id="btn-gdrive-label">Connect to Google Drive</span>
+        </button>
+      </div>
+
+      <!-- Connected section: shown when OAuth tokens are stored -->
+      <div id="gdrive-connected-section" class="d-none">
+        <div class="alert alert-success mb-3">Connected to Google Drive.</div>
+        <button id="btn-gdrive-continue" class="btn btn-primary w-100 mb-2">Continue</button>
+        <div class="text-center">
+          <button id="btn-gdrive-disconnect" class="btn btn-link btn-sm text-secondary">Disconnect</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Redemption dashboard page -->
   <div id="page-dashboard" class="d-none">
-    <div class="container mt-5">
-      <h2>Dashboard</h2>
+    <div class="container mt-5" style="max-width: 600px;">
+      <h2 class="mb-4">Dashboard</h2>
+      <p class="text-muted">Spreadsheet scanning is not yet implemented.</p>
     </div>
   </div>
 

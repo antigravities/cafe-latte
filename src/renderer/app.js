@@ -1,4 +1,5 @@
 import { init as initSteam } from './steam.js';
+import { init as initGdrive } from './gdrive.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const pageSections = ['page-login', 'page-connect', 'page-dashboard']
@@ -10,5 +11,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await initSteam(navigateTo);
-  // future: await initGdrive(navigateTo);
+  await initGdrive(navigateTo);
 });
