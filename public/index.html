@@ -114,8 +114,53 @@
   <!-- Redemption dashboard page -->
   <div id="page-dashboard" class="d-none">
     <div class="container mt-5" style="max-width: 600px;">
-      <h2 class="mb-4">Dashboard</h2>
-      <p class="text-muted">Spreadsheet scanning is not yet implemented.</p>
+
+      <div class="d-flex align-items-baseline justify-content-between mb-1">
+        <h2 class="mb-0">Dashboard</h2>
+        <button id="btn-dashboard-refresh" class="btn btn-link btn-sm text-secondary p-0">Refresh</button>
+      </div>
+      <p class="text-muted small mb-4" id="dashboard-sheet-name"></p>
+
+      <!-- Loading spinner -->
+      <div id="dashboard-spinner" class="text-center my-5 d-none" role="status">
+        <span class="spinner-border text-secondary" aria-hidden="true"></span>
+      </div>
+
+      <!-- Error state -->
+      <div id="dashboard-error" class="alert alert-warning d-none" role="alert"></div>
+
+      <!-- Stat cards -->
+      <div class="row row-cols-3 g-3 mb-4">
+        <div class="col">
+          <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+              <div class="display-5 fw-bold text-body" id="stat-total">—</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-2 ls-1">Total</div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+              <div class="display-5 fw-bold text-success" id="stat-redeemed">—</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-2">Redeemed</div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+              <div class="display-5 fw-bold text-warning" id="stat-pending">—</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-2">Pending</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-2">
+        <a href="#" id="btn-dashboard-back" class="text-secondary small">← Back</a>
+      </div>
+
     </div>
   </div>
 
