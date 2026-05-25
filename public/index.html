@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Café Latte</title>
+  <title>Cafè Latte</title>
   <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
 </head>
 <body>
@@ -120,7 +120,7 @@
         <div class="d-flex gap-2 align-items-center">
           <button id="btn-redeem-now" class="btn btn-success btn-sm">
             <span id="btn-redeem-spinner" class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
-            Redeem Keys
+            Start Redeeming
           </button>
           <button id="btn-dashboard-refresh" class="btn btn-link btn-sm text-secondary p-0">Refresh</button>
         </div>
@@ -152,7 +152,7 @@
           <div class="card text-center border-0 shadow-sm h-100">
             <div class="card-body py-4">
               <div class="display-5 fw-bold text-success" id="stat-redeemed">—</div>
-              <div class="text-muted small text-uppercase fw-semibold mt-2">Redeemed</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-2">Completed</div>
             </div>
           </div>
         </div>
@@ -202,8 +202,10 @@
         </div>
       </div>
 
-      <!-- ETA line — only shown when there are pending keys -->
-      <p id="stat-eta" class="text-center text-muted small mt-2 mb-3"></p>
+      <!-- ETA line — only shown when there are pending keys and a pass has run -->
+      <p id="stat-eta" class="text-center text-muted small mt-2 mb-1"></p>
+      <!-- Auto-polling notice — only shown after the first redemption pass -->
+      <p id="stat-auto-notice" class="text-center text-muted small mb-3 d-none">Automatically checking for new keys every 15 minutes.</p>
 
       <div class="text-center mt-2">
         <a href="#" id="btn-dashboard-back" class="text-secondary small">← Back</a>

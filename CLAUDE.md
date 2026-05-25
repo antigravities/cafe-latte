@@ -1,4 +1,4 @@
-# Café Latte
+# Cafè Latte
 
 This is a project to asynchronously redeem Steam keys sourced from a Google sheet. The users of this project may have hundreds of backlogged keys at a particular time and want to redeem them as quickly as possible, but they don't want to have to babysit the process. This project will allow users to set-and-forget the redemption process, and it will automatically update the spreadsheet with the results of each redemption attempt.
 

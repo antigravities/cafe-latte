@@ -55,7 +55,7 @@ function createWindow() {
 
   const icon = nativeImage.createFromPath(path.join(__dirname, '..', 'public', 'icon.ico'));
   const tray = new Tray(icon);
-  tray.setToolTip('Café Latte');
+  tray.setToolTip('Cafè Latte');
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Open', click: () => { win.show(); win.focus(); } },
     { type: 'separator' },

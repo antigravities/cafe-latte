@@ -197,7 +197,7 @@ async function runRedemptionPass(store) {
       // but no further activation is attempted in this pass
       store.set('lastRedemptionAttempt', Date.now());
       new Notification({
-        title: 'Café Latte — Rate Limited',
+        title: 'Cafè Latte — Rate Limited',
         body: `Steam rate limit hit on "${gameName}". Resuming in ~62 minutes.`,
       }).show();
       inCooldown = true;
@@ -206,7 +206,7 @@ async function runRedemptionPass(store) {
       const statusText = pkgId ? `${eresultName} [${pkgId}, ${pkgName}]` : eresultName;
       await writeRowResult(sheetsApi, spreadsheet.id, sheetId, rowIndex, statusText, COLOR_FAILURE);
       new Notification({
-        title: `Café Latte — ${eresultName}`,
+        title: `Cafè Latte — ${eresultName}`,
         body: `Could not redeem "${gameName}": ${eresultName}`,
       }).show();
       failed++;
