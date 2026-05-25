@@ -124,12 +124,12 @@ export function registerHandlers(ipcMain, store) {
         Date.now() - statsCache.fetchedAt < STATS_TTL_MS;
 
       if (cacheValid) {
-        return { success: true, totalRows: statsCache.totalRows, pendingRows: statsCache.pendingRows };
+        return { success: true, totalRows: statsCache.totalRows, pendingRows: statsCache.pendingRows, lastRedemptionAttempt: store.get('lastRedemptionAttempt', null) };
       }
 
       const stats = await getSheetStats(store);
       statsCache = { spreadsheetId: spreadsheet.id, ...stats, fetchedAt: Date.now() };
-      return { success: true, ...stats };
+      return { success: true, ...stats, lastRedemptionAttempt: store.get('lastRedemptionAttempt', null) };
     } catch (err) {
       return { success: false, reason: err.message };
     }

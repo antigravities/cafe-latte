@@ -10,6 +10,69 @@ const elTotal      = () => document.getElementById('stat-total');
 const elRedeemed   = () => document.getElementById('stat-redeemed');
 const elPending    = () => document.getElementById('stat-pending');
 
+const KEYS_PER_HOUR    = 50;
+const COOLDOWN_MS      = 62 * 60 * 1000;
+
+/**
+ * Formats a millisecond duration into a human-readable string like "2h 14m" or "45m".
+ * Returns "< 1 minute" for very short durations.
+ * @param {number} ms
+ * @returns {string}
+ */
+function fmtDuration(ms) {
+  const totalMin = Math.ceil(ms / 60_000);
+  if (totalMin < 1) return '< 1 minute';
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+/**
+ * Updates the #stat-eta element with an estimated completion time.
+ * Assumes all pending keys will succeed at KEYS_PER_HOUR.
+ * Adds remaining rate-limit cooldown time when applicable.
+ * @param {number} pending
+ * @param {number|null} lastAttempt  — ms timestamp of last activation attempt, or null
+ */
+function updateEta(pending, lastAttempt) {
+  const el = document.getElementById('stat-eta');
+  if (!pending || pending === 0 || pending === '—') {
+    el.textContent = '';
+    return;
+  }
+
+  const cooldownRemaining = lastAttempt
+    ? Math.max(0, lastAttempt + COOLDOWN_MS - Date.now())
+    : 0;
+
+  const activationMs = (pending / KEYS_PER_HOUR) * 3_600_000;
+  const totalMs = cooldownRemaining + activationMs;
+
+  if (cooldownRemaining > 0) {
+    el.textContent = `~${fmtDuration(totalMs)} remaining at 50 keys/hour (rate-limited — cooldown ${fmtDuration(cooldownRemaining)})`;
+  } else {
+    el.textContent = `~${fmtDuration(totalMs)} remaining at 50 keys/hour`;
+  }
+}
+
+// Cumulative session totals — reset only on app launch, not per pass.
+// These accumulate across both manual passes and the future 15-min automatic passes.
+const session = { checked: 0, activated: 0, owned: 0, failed: 0 };
+
+function updateSessionCards() {
+  const row = document.getElementById('session-stats-row');
+  document.getElementById('stat-session-checked').textContent   = session.checked;
+  document.getElementById('stat-session-activated').textContent = session.activated;
+  document.getElementById('stat-session-owned').textContent     = session.owned;
+  document.getElementById('stat-session-failed').textContent    = session.failed;
+  // Only reveal the row once a pass has run
+  if (session.checked > 0 || session.activated > 0 || session.owned > 0 || session.failed > 0) {
+    row.classList.remove('d-none');
+  }
+}
+
 /** Fetches stats and updates the DOM. Pass force=true to bypass the cache. */
 async function loadStats(force = false) {
   const spinner = elSpinner();
@@ -40,6 +103,10 @@ async function loadStats(force = false) {
 
   const redeemed = res.totalRows - res.pendingRows;
   setStats(res.totalRows, redeemed, res.pendingRows);
+  updateEta(res.pendingRows, res.lastRedemptionAttempt ?? null);
+
+  // Keep session cards in sync on every refresh
+  updateSessionCards();
 }
 
 function setStats(total, redeemed, pending) {
@@ -49,7 +116,44 @@ function setStats(total, redeemed, pending) {
 }
 
 export function init(navigateTo) {
-  document.getElementById('btn-dashboard-refresh').addEventListener('click', () => loadStats(true));
+  const btnRedeem   = document.getElementById('btn-redeem-now');
+  const btnRefresh  = document.getElementById('btn-dashboard-refresh');
+  const redeemSpinner = document.getElementById('btn-redeem-spinner');
+  const redeemError = document.getElementById('redemption-error');
+
+  btnRedeem.addEventListener('click', async () => {
+    // Lock both buttons while the pass runs
+    btnRedeem.disabled  = true;
+    btnRefresh.disabled = true;
+    redeemSpinner.classList.remove('d-none');
+    redeemError.classList.add('d-none');
+
+    const result = await window.api.runRedemptionPass();
+
+    // Restore buttons
+    btnRedeem.disabled  = false;
+    btnRefresh.disabled = false;
+    redeemSpinner.classList.add('d-none');
+
+    if (!result.success) {
+      redeemError.textContent = `Redemption pass failed: ${result.reason}`;
+      redeemError.classList.remove('d-none');
+      return;
+    }
+
+    // Accumulate into session totals
+    session.checked   += result.checked   ?? 0;
+    session.activated += result.activated ?? 0;
+    session.owned     += result.markedOwned ?? 0;
+    session.failed    += result.failed    ?? 0;
+
+    updateSessionCards();
+
+    // Refresh sheet stat cards so Redeemed / Pending numbers are up to date
+    loadStats(true);
+  });
+
+  btnRefresh.addEventListener('click', () => loadStats(true));
 
   document.getElementById('btn-dashboard-back').addEventListener('click', () => {
     navigateTo('page-connect');

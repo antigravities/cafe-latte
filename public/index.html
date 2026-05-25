@@ -117,7 +117,13 @@
 
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <h2 class="mb-0">Dashboard</h2>
-        <button id="btn-dashboard-refresh" class="btn btn-link btn-sm text-secondary p-0">Refresh</button>
+        <div class="d-flex gap-2 align-items-center">
+          <button id="btn-redeem-now" class="btn btn-success btn-sm">
+            <span id="btn-redeem-spinner" class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+            Redeem Keys
+          </button>
+          <button id="btn-dashboard-refresh" class="btn btn-link btn-sm text-secondary p-0">Refresh</button>
+        </div>
       </div>
       <p class="text-muted small mb-4" id="dashboard-sheet-name"></p>
 
@@ -128,6 +134,9 @@
 
       <!-- Error state -->
       <div id="dashboard-error" class="alert alert-warning d-none" role="alert"></div>
+
+      <!-- Pass error -->
+      <div id="redemption-error" class="alert alert-danger d-none mb-3" role="alert"></div>
 
       <!-- Stat cards -->
       <div class="row row-cols-3 g-3 mb-4">
@@ -156,6 +165,45 @@
           </div>
         </div>
       </div>
+
+      <!-- Session stat cards — hidden until the first redemption pass runs -->
+      <div id="session-stats-row" class="row row-cols-2 row-cols-md-4 g-3 mb-4 d-none">
+        <div class="col">
+          <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+              <div class="fs-3 fw-bold text-body" id="stat-session-checked">0</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-1">Checked</div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+              <div class="fs-3 fw-bold text-success" id="stat-session-activated">0</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-1">Activated</div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+              <div class="fs-3 fw-bold text-info" id="stat-session-owned">0</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-1">Already Owned</div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+              <div class="fs-3 fw-bold text-danger" id="stat-session-failed">0</div>
+              <div class="text-muted small text-uppercase fw-semibold mt-1">Failed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ETA line — only shown when there are pending keys -->
+      <p id="stat-eta" class="text-center text-muted small mt-2 mb-3"></p>
 
       <div class="text-center mt-2">
         <a href="#" id="btn-dashboard-back" class="text-secondary small">← Back</a>
