@@ -124,16 +124,22 @@ Three `<div>` page containers toggled with Bootstrap's `d-none`:
   - Google Drive: credential entry, OAuth flow, spreadsheet picker with Fuse.js fuzzy search, pre-selects previously chosen sheet on return visits
 - Dashboard UI with redemption stats (total/pending counts) with force refresh
 - App catalog lookup (`src/applist.js`): downloads full Steam app list via `IStoreService/GetAppList/v1`, builds exact + normalized + Fuse.js fuzzy index, session-cached
-- Redemption pass skeleton (`src/redeem.js`): `redemption:run` IPC handler iterates every pending row, resolves game name → appID, checks `IPlayerService/GetOwnedGames/v1`, marks owned rows as "Already in library [appid, name]" with light-blue highlight immediately (no queuing)
+- Redemption pass (`src/redeem.js`): `redemption:run` IPC handler iterates every pending row, resolves game name → appID, checks ownership, marks owned rows light-blue, and activates keys for unowned rows via `steam-user`'s `activateKey`
+  - Success → green row, `Success [pkgId, pkgName]`
+  - Steam error → red row, `ErrorName [pkgId, pkgName]`, desktop notification via Electron `Notification`
+  - `RateLimitExceeded` → desktop notification, loop stops; timestamp saved to `lastRedemptionAttempt` store key so the next pass respects the 62-minute cooldown
+  - During cooldown, ownership checks still run but no keys are activated
 
 **IPC — Redemption (`src/redeem.js`)**
 
 | IPC channel | `window.api` method | Description |
 |---|---|---|
-| `redemption:run` | `runRedemptionPass()` | Runs ownership-check pass; returns `{ success, checked, markedOwned }` |
+| `redemption:run` | `runRedemptionPass()` | Runs full redemption pass; returns `{ success, checked, markedOwned, activated, failed }` |
+
+**Store keys used by redemption**
+| Key | Type | Purpose |
+|---|---|---|
+| `lastRedemptionAttempt` | number (ms timestamp) | Guards against activating keys during the 62-minute rate-limit cooldown |
 
 ### What is NOT yet implemented
-- Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`) — stub exists in `src/redeem.js` (`// TODO: attempt key activation`)
-- Rate-limit detection, 62-minute cooldown, and last-redemption timestamp persistence
 - 15-minute polling loop
-- Desktop notifications for errors and rate-limit events

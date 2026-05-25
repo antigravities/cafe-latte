@@ -66,8 +66,8 @@ contextBridge.exposeInMainWorld('api', {
   debugAppList: (name) => ipcRenderer.invoke('debug:applist', name),
 
   // Runs a full redemption pass over the selected spreadsheet.
-  // Checks each pending row for library ownership, marks owned games immediately.
-  // Returns { success: true, checked, markedOwned } or { success: false, reason }.
+  // Checks each pending row for library ownership, then attempts key activation for unowned rows.
+  // Returns { success: true, checked, markedOwned, activated, failed } or { success: false, reason }.
   // window.api.runRedemptionPass()
   runRedemptionPass: () => ipcRenderer.invoke('redemption:run'),
 });

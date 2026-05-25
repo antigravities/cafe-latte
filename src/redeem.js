@@ -1,6 +1,8 @@
+import { Notification } from 'electron';
 import { google } from 'googleapis';
+import SteamUser from 'steam-user';
 import { getAuthenticatedClient } from './gdrive.js';
-import { getAccessToken, getSteamId } from './steam.js';
+import { getAccessToken, getSteamId, activateKey } from './steam.js';
 import { findAppId } from './applist.js';
 
 const OWNED_GAMES_URL = 'https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/';
@@ -19,6 +21,7 @@ async function getOwnedAppIds(accessToken, steamId) {
     steamid: steamId,
     include_appinfo: '0',
     include_played_free_games: '1',
+    skip_unvetted_apps: '0',
   });
 
   const res = await fetch(`${OWNED_GAMES_URL}?${params}`);
@@ -97,6 +100,12 @@ async function writeRowResult(sheetsApi, spreadsheetId, sheetId, rowIndex, statu
 
 // Light blue: visually distinct from green (redemption success) and red (failure)
 const COLOR_ALREADY_OWNED = { red: 0.678, green: 0.847, blue: 0.902 };
+const COLOR_SUCCESS        = { red: 0.714, green: 0.843, blue: 0.659 }; // soft green
+const COLOR_FAILURE        = { red: 0.918, green: 0.600, blue: 0.600 }; // soft red
+
+// How long to wait after hitting a Steam rate limit before attempting another activation.
+// Steam's actual window is ~1 hour; we add 2 minutes of buffer to be safe.
+const RATE_LIMIT_COOLDOWN_MS = 62 * 60 * 1000;
 
 /**
  * Runs one pass over the selected spreadsheet. For every row with a blank activation
@@ -105,12 +114,18 @@ const COLOR_ALREADY_OWNED = { red: 0.678, green: 0.847, blue: 0.902 };
  *   1. Resolves the game name (column A) to a Steam appID via the app catalog.
  *   2. Checks whether that appID is in the user's owned-games list (fetched once and
  *      cached for the duration of this pass).
- *   3. If owned: writes "Already in library [appid, name]" and applies a light-blue
- *      highlight immediately — progress is preserved if the pass is interrupted.
- *   4. If not owned or app not found: no-op for now (key activation will be added here).
+ *   3. If owned: writes "Already in library [appid, name]" with a light-blue highlight.
+ *   4. If not owned (or app not found in catalog) and not in rate-limit cooldown:
+ *      attempts to activate the key (column B).
+ *      - Success → green row, "Success [pkgId, pkgName]"
+ *      - RateLimitExceeded → desktop notification, loop stops (timestamp saved, next
+ *        pass will skip activation until 62 minutes have elapsed)
+ *      - Any other Steam error → red row, "ErrorName [pkgId, pkgName]", desktop notification
+ *
+ * Progress is written to the sheet immediately so a crash or interruption preserves work.
  *
  * @param {import('electron-store').default} store
- * @returns {Promise<{ checked: number, markedOwned: number }>}
+ * @returns {Promise<{ checked: number, markedOwned: number, activated: number, failed: number }>}
  */
 async function runRedemptionPass(store) {
   const spreadsheet = store.get('selectedSpreadsheet');
@@ -137,8 +152,14 @@ async function runRedemptionPass(store) {
 
   const ownedAppIds = await getOwnedAppIds(accessToken, steamId.toString());
 
+  // Check once at the start of the pass so ownership checks still run during cooldown
+  const lastAttempt = store.get('lastRedemptionAttempt', 0);
+  let inCooldown = Date.now() - lastAttempt < RATE_LIMIT_COOLDOWN_MS;
+
   let checked = 0;
   let markedOwned = 0;
+  let activated = 0;
+  let failed = 0;
 
   for (let i = 0; i < dataRows.length; i++) {
     const row = dataRows[i];
@@ -159,10 +180,39 @@ async function runRedemptionPass(store) {
       continue;
     }
 
-    // TODO: attempt key activation for unowned games
+    // Skip activation if in rate-limit cooldown but still count ownership checks above
+    const key = row[1]?.trim();
+    if (!key || inCooldown) continue;
+
+    const { eresult, eresultName, packageList } = await activateKey(key);
+    const [pkgId, pkgName] = Object.entries(packageList)[0] ?? [null, null];
+
+    if (eresult === SteamUser.EResult.OK) {
+      const statusText = pkgId ? `Success [${pkgId}, ${pkgName}]` : 'Success';
+      await writeRowResult(sheetsApi, spreadsheet.id, sheetId, rowIndex, statusText, COLOR_SUCCESS);
+      activated++;
+    } else if (eresultName === 'RateLimited') {
+      // Save timestamp and flip inCooldown so remaining rows still get ownership-checked
+      // but no further activation is attempted in this pass
+      store.set('lastRedemptionAttempt', Date.now());
+      new Notification({
+        title: 'Café Latte — Rate Limited',
+        body: `Steam rate limit hit on "${gameName}". Resuming in ~62 minutes.`,
+      }).show();
+      inCooldown = true;
+      continue;
+    } else {
+      const statusText = pkgId ? `${eresultName} [${pkgId}, ${pkgName}]` : eresultName;
+      await writeRowResult(sheetsApi, spreadsheet.id, sheetId, rowIndex, statusText, COLOR_FAILURE);
+      new Notification({
+        title: `Café Latte — ${eresultName}`,
+        body: `Could not redeem "${gameName}": ${eresultName}`,
+      }).show();
+      failed++;
+    }
   }
 
-  return { checked, markedOwned };
+  return { checked, markedOwned, activated, failed };
 }
 
 /**

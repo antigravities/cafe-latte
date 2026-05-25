@@ -170,3 +170,38 @@ export function getAccessToken() {
 export function getSteamId() {
   return client.steamID ?? null;
 }
+
+/**
+ * Attempts to activate a Steam product key on the current account.
+ * Always resolves — never rejects. The result code lives in purchaseResultDetails,
+ * not in the err argument, so we always resolve and let the caller check eresult.
+ *
+ * @param {string} key - The CD key to activate
+ * @returns {Promise<{ eresult: number, eresultName: string, packageList: Record<string, string> }>}
+ */
+export function activateKey(key) {
+  return new Promise((resolve) => {
+    client.redeemKey(key, (err, purchaseResultDetails, packageList) => {
+      // err.eresult is the EResult (OK vs failure); purchaseResultDetails is EPurchaseResultDetail
+      // (more specific reason: AlreadyPurchased, DuplicateActivationCode, RegionLockedKey, etc.)
+      const eresult = err == null ? SteamUser.EResult.OK : (err.eresult ?? SteamUser.EResult.Fail);
+
+      // err.purchaseResultDetails is the EPurchaseResultDetail value (callback arg is always undefined)
+      const prd = err?.purchaseResultDetails ?? 0;
+      const prdName = SteamUser.EPurchaseResultDetail?.[prd];
+
+      // Prefer the EPurchaseResultDetail name (e.g. "DuplicateActivationCode") when non-zero;
+      // fall back to the EResult name for generic failures where prd=0
+      const eresultName = (prd !== 0 && prdName)
+        ? prdName
+        : (SteamUser.EResult[eresult] ?? String(eresult));
+
+      // On failure, steam-user attaches packageList to err rather than the callback arg
+      const pkgList = (packageList && Object.keys(packageList).length > 0)
+        ? packageList
+        : (err?.packageList ?? {});
+
+      resolve({ eresult, eresultName, packageList: pkgList });
+    });
+  });
+}
