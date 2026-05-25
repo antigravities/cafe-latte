@@ -1,5 +1,14 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
+import ElectronStore from 'electron-store';
+import { registerHandlers as registerSteamHandlers } from './steam.js';
+
+const store = new ElectronStore();
+
+// workaround for __dirname in ES modules
+const __dirname = path.dirname(new URL(import.meta.url).pathname).split("/").slice(1).join("/");
+
+registerSteamHandlers(ipcMain, store);
 
 function createWindow() {
   const win = new BrowserWindow({

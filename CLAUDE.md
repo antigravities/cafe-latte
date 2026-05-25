@@ -6,6 +6,10 @@ We are building this project for personal use, but we will make the code public 
 
 We are building this project step-by-step, starting with the basic flow and then adding features and improvements as we go. The basic flow is outlined below, but we may make changes to it as we build the project and encounter any issues or edge cases. Do not stray too far from the current task when working and try to keep diffs small and focused on the current step, to make it easier to review and merge changes. The outline of the project is being provided so you can keep future enhancements in mind as you propose and make changes, but ALWAYS focus on the task at hand.
 
+The user is a near-expert at Node.js, Electron, and JavaScript, but please document methods and explain any complex code or logic in detail in comments, so that it's easy for us and future agents to understand the code and the reasoning behind it when we review the changes.
+
+As you implement more features, update this document's "what is implemented" / "what is not implemented" and include any relevant information about the implementation, such as new dependencies, changes to the file structure, or any other details that may be helpful for understanding the codebase and how to work with it.
+
 ## User Interface
 
 The app itself should be a simple Electron app that has a few screens:
@@ -43,3 +47,61 @@ The spreadsheet will look like this:
 - Any lines that have a *non-blank* activation status have already been redeemed and should be skipped.
     - When you activate a key, always update the activation status with the name of the package (where available) and result of the activation attempt, both so that the user knows the game was activate and so it doesn't get redeemed again in the future.
     - Also highlight the line(s) red/green/etc. to visually indicate whether the activation was successful or not.
+
+## Codebase Map
+
+### File structure
+```
+src/
+main.js          — Electron main process: BrowserWindow creation, wires store + modules
+steam.js         — Steam auth module: state, helpers, IPC handler registration
+preload.js       — contextBridge: exposes window.api to renderer
+renderer/
+    app.js         — Renderer entry point (DOMContentLoaded stub, currently empty)
+public/
+index.html       — Single-page shell; three page divs toggled by JS
+electron-builder.yml — Builds to dist/ as Windows NSIS installer
+```
+
+### Key dependencies
+| Package | Version | Purpose |
+|---|---|---|
+| `steam-user` | 5.3.0 | Steam CM connections, key activation, library queries |
+| `googleapis` | 172.0.0 | Google Sheets/Drive API |
+| `bootstrap` | 5.3.8 | UI — loaded directly from `node_modules/bootstrap/dist/` |
+| `electron-store` | 11.0.2 | Persistent config/state (installed, not yet wired up) |
+| `electron` | 42.2.0 | App runtime (devDep) |
+
+### IPC surface (`src/steam.js` → `src/preload.js`)
+Handlers are registered via `registerHandlers(ipcMain, store)` in `src/steam.js`.
+
+| IPC channel | `window.api` method | Description |
+|---|---|---|
+| `steam:login` | `steamLogin({ accountName, password, twoFactorCode?, authCode? })` | Fresh login; resets prior SteamUser instance |
+| `steam:submit-steam-guard` | `steamSubmitSteamGuard(code)` | Submits SteamGuard code after a pending auth challenge |
+| `steam:get-saved-account` | `getSavedAccount()` | Returns `{ accountName }` if a valid token is stored, else null |
+| `steam:login-with-token` | `steamLoginWithToken()` | Logs in using the stored refresh token |
+| `steam:clear-saved-account` | `steamClearSavedAccount()` | Clears the stored account and refresh token |
+
+All handlers return `{ success: true }` or `{ success: false, reason, ... }`.
+
+### UI pages (`public/index.html`)
+Three `<div>` page containers toggled with Bootstrap's `d-none`:
+- `#page-login` — Steam login form (visible by default)
+- `#page-connect` — Google Drive connection + spreadsheet picker
+- `#page-dashboard` — Redemption progress view
+
+### What is implemented
+- Steam login + SteamGuard two-step auth (`src/steam.js` + `src/preload.js`)
+- Refresh token persistence and auto-login via `electron-store` (`src/steam.js`)
+- BrowserWindow creation with contextIsolation + no nodeIntegration (`src/main.js`)
+
+### What is NOT yet implemented
+- UI for all three pages (forms, page transitions, error display)
+- Google Drive OAuth and spreadsheet selection
+- Key redemption logic (`steam-user` `activateKey` / `requestFreeLicense`)
+- Library ownership check (Storefront API / GetAppList)
+- Rate-limit detection, 62-minute cooldown, and last-redemption timestamp persistence
+- 15-minute polling loop
+- Desktop notifications for errors and rate-limit events
+- Spreadsheet row coloring (green/red) on redemption result
