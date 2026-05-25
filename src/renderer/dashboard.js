@@ -135,7 +135,7 @@ function setStats(total, redeemed, pending) {
   elPending().textContent  = pending;
 }
 
-const AUTO_PASS_INTERVAL_MS = 15 * 60 * 1000;
+const AUTO_PASS_INTERVAL_MS = 5 * 60 * 1000;
 
 export function init(navigateTo) {
   const btnRedeem     = document.getElementById('btn-redeem-now');
