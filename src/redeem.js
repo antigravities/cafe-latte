@@ -108,6 +108,15 @@ const COLOR_FAILURE        = { red: 0.918, green: 0.600, blue: 0.600 }; // soft 
 // Steam's actual window is ~1 hour; we add 2 minutes of buffer to be safe.
 const RATE_LIMIT_COOLDOWN_MS = 62 * 60 * 1000;
 
+// Cumulative counts for the current app session. Lives in the main process so it
+// survives renderer reloads. Reset only when the app is restarted.
+const sessionStats = { checked: 0, activated: 0, owned: 0, failed: 0 };
+
+/** Returns a snapshot of cumulative session stats. */
+export function getSessionStats() {
+  return { ...sessionStats };
+}
+
 /**
  * Runs one pass over the selected spreadsheet. For every row with a blank activation
  * status (column C), it:
@@ -212,6 +221,11 @@ async function runRedemptionPass(store) {
       failed++;
     }
   }
+
+  sessionStats.checked   += checked;
+  sessionStats.activated += activated;
+  sessionStats.owned     += markedOwned;
+  sessionStats.failed    += failed;
 
   invalidateStatsCache();
   return { checked, markedOwned, activated, failed };

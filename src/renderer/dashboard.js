@@ -77,18 +77,17 @@ function updateEta(pending, lastAttempt) {
   }
 }
 
-// Cumulative session totals — reset only on app launch, not per pass.
-// These accumulate across both manual passes and the future 15-min automatic passes.
-const session = { checked: 0, activated: 0, owned: 0, failed: 0 };
-
-function updateSessionCards() {
+/**
+ * Updates the session stat cards from a stats object returned by the backend.
+ * @param {{ checked: number, activated: number, owned: number, failed: number }} stats
+ */
+function updateSessionCards(stats) {
   const row = document.getElementById('session-stats-row');
-  document.getElementById('stat-session-checked').textContent   = session.checked;
-  document.getElementById('stat-session-activated').textContent = session.activated;
-  document.getElementById('stat-session-owned').textContent     = session.owned;
-  document.getElementById('stat-session-failed').textContent    = session.failed;
-  // Only reveal the row once a pass has run
-  if (session.checked > 0 || session.activated > 0 || session.owned > 0 || session.failed > 0) {
+  document.getElementById('stat-session-checked').textContent   = stats.checked;
+  document.getElementById('stat-session-activated').textContent = stats.activated;
+  document.getElementById('stat-session-owned').textContent     = stats.owned;
+  document.getElementById('stat-session-failed').textContent    = stats.failed;
+  if (stats.checked > 0 || stats.activated > 0 || stats.owned > 0 || stats.failed > 0) {
     row.classList.remove('d-none');
   }
 }
@@ -125,8 +124,8 @@ async function loadStats(force = false) {
   setStats(res.totalRows, redeemed, res.pendingRows);
   updateEta(res.pendingRows, res.lastRedemptionAttempt ?? null);
 
-  // Keep session cards in sync on every refresh
-  updateSessionCards();
+  // Session stats live in the main process; just display whatever the backend reports
+  if (res.sessionStats) updateSessionCards(res.sessionStats);
 }
 
 function setStats(total, redeemed, pending) {
@@ -177,15 +176,7 @@ export function init(navigateTo) {
         return;
       }
 
-      // Accumulate into session totals
-      session.checked   += result.checked    ?? 0;
-      session.activated += result.activated  ?? 0;
-      session.owned     += result.markedOwned ?? 0;
-      session.failed    += result.failed     ?? 0;
-
-      updateSessionCards();
-
-      // Refresh sheet stat cards so Redeemed / Pending numbers are up to date
+      // Refresh sheet stat cards (and session stats) — backend has the cumulative totals
       loadStats(true);
     } finally {
       isPassRunning       = false;

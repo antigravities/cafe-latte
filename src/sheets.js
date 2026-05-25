@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import { getAuthenticatedClient } from './gdrive.js';
+import { getSessionStats } from './redeem.js';
 
 /**
  * Lists all Google Sheets spreadsheets accessible to the authenticated user.
@@ -129,12 +130,12 @@ export function registerHandlers(ipcMain, store) {
         Date.now() - statsCache.fetchedAt < STATS_TTL_MS;
 
       if (cacheValid) {
-        return { success: true, totalRows: statsCache.totalRows, pendingRows: statsCache.pendingRows, lastRedemptionAttempt: store.get('lastRedemptionAttempt', null) };
+        return { success: true, totalRows: statsCache.totalRows, pendingRows: statsCache.pendingRows, lastRedemptionAttempt: store.get('lastRedemptionAttempt', null), sessionStats: getSessionStats() };
       }
 
       const stats = await getSheetStats(store);
       statsCache = { spreadsheetId: spreadsheet.id, ...stats, fetchedAt: Date.now() };
-      return { success: true, ...stats, lastRedemptionAttempt: store.get('lastRedemptionAttempt', null) };
+      return { success: true, ...stats, lastRedemptionAttempt: store.get('lastRedemptionAttempt', null), sessionStats: getSessionStats() };
     } catch (err) {
       return { success: false, reason: err.message };
     }
